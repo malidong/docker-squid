@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  docker_squid:
+    image: malidong/docker-squid:latest
+    restart: always
+    ports:
+      - "3128:3128/tcp"
+    hostname: docker-squid
+    container_name: docker-squid
+    volumes:
+      - ./etc-squid:/etc/squid
+
