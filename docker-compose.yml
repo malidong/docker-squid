@@ -10,4 +10,11 @@ services:
     container_name: docker-squid
     volumes:
       - ./etc-squid:/etc/squid
+      - ./squid-cache:/var/cache/squid
+      - ./squid-logs:/var/log/squid
+    healthcheck:
+      test: ["CMD", "squid", "-k", "check"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 

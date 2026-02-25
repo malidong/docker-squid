@@ -1,0 +1,12 @@
+# Ignore git and local files
+.git
+.gitignore
+Dockerfile
+docker_build.sh
+README.md
+*.md
+*.log
+node_modules
+venv
+__pycache__
+.DS_Store

@@ -1,40 +1,41 @@
 #!/bin/sh
-# Docker script to configure and start an Http Proxy Server
-#
-# DO NOT RUN THIS SCRIPT ON YOUR PC OR MAC! 
-# THIS IS ONLY MEANT TO BE RUN IN A CONTAINER!
-#
-# This file is part of squid docker image, available at:
-# https://github.com/malidong/docker-squid
-# Copyright (C) 2022-2022 Stand-E Consulting <stand.e.consulting@gmail.com>
-#
-# This work is licensed under the The MIT License
-# Unported License: https://opensource.org/licenses/MIT
-#
-# Attribution required: please include my name in any derivative and let me
-# know how you have improved it!
+set -e
 
-# Start squid
+# Docker script to configure and start an Http Proxy Server
+# This script is intended to run inside the container only.
+
+conf_dir="/etc/squid"
+
+# Ensure cache and log dirs exist with sensible permissions
+mkdir -p /var/cache/squid /var/log/squid
+chown -R squid:squid /var/cache/squid /var/log/squid || true
+
+# Initialize Squid cache directory if needed (safe to run on every start)
+echo "Initializing squid cache directory (squid -z)..."
+set +e
+squid -z
+_rc=$?
+set -e
+if [ $_rc -ne 0 ]; then
+    echo "Warning: squid -z returned non-zero ($_rc). Continuing startup."
+fi
+
+# Start squid (daemonized)
 squid
 
-conf_dir="/home/pi/docker-squid/etc-squid"
+# Compute initial checksum of config directory (if present)
+previous_status="$(find "${conf_dir}" -type f -exec md5sum {} \; | sort -k 2 | md5sum 2>/dev/null || true)"
 
-# Get the status of setting files in /etc/squid/
-previous_status=`find ${conf_dir} -type f -exec md5sum {} \; | sort -k 2 | md5sum`
-current_status=`find ${conf_dir} -type f -exec md5sum {} \; | sort -k 2 | md5sum`
+trap 'echo "Stopping container, shutting down squid..."; squid -k shutdown; exit 0' TERM INT
 
-# If something in settings changed, reload squid.
-while true
-do
+while true; do
     sleep 300
-
-    current_status=`find ${conf_dir} -type f -exec md5sum {} \; | sort -k 2 | md5sum`
-    if [ "$previous_status" = "$current_status" ]; then
+    current_status="$(find "${conf_dir}" -type f -exec md5sum {} \; | sort -k 2 | md5sum 2>/dev/null || true)"
+    if [ "${previous_status}" = "${current_status}" ]; then
         echo "No changes on settings...Sleep 5 minutes"
     else
-        echo "Changes found in settings, reload settings..."
-        squid -k reconfigure
-        previous_status="$current_status"
+        echo "Changes found in settings, reloading squid configuration..."
+        squid -k reconfigure || echo "squid reconfigure failed"
+        previous_status="${current_status}"
     fi
 done
-
