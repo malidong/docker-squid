@@ -44,4 +44,4 @@ If you want, I can also:
 
 CI notes
 
-- The repository includes a GitHub Actions workflow at `.github/workflows/docker-publish.yml` which builds and pushes the image to GitHub Container Registry (GHCR) on pushes to `main` and tags. To enable pushing to Docker Hub, set the repository secrets `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, and (optionally) `DOCKERHUB_REPO`.
+- The repository includes a GitHub Actions workflow at `.github/workflows/docker-publish.yml` which builds and pushes the image to GitHub Container Registry (GHCR) on pushes to `main` and tags. To enable pushing to Docker Hub, set the repository secrets `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, and (optionally) `DOCKERHUB_REPO` (defaults to `malidong/docker-squid` if unset).

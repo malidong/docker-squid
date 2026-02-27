@@ -20,15 +20,21 @@ if [ $_rc -ne 0 ]; then
     echo "Warning: squid -z returned non-zero ($_rc). Continuing startup."
 fi
 
-# Start squid (daemonized)
-squid
+# Start squid in foreground mode so container exits if squid exits.
+squid -N &
+SQUID_PID=$!
 
 # Compute initial checksum of config directory (if present)
 previous_status="$(find "${conf_dir}" -type f -exec md5sum {} \; | sort -k 2 | md5sum 2>/dev/null || true)"
 
-trap 'echo "Stopping container, shutting down squid..."; squid -k shutdown; exit 0' TERM INT
+stop() {
+    echo "Stopping container, shutting down squid..."
+    squid -k shutdown || true
+}
 
-while true; do
+trap 'stop; exit 0' TERM INT
+
+while kill -0 "${SQUID_PID}" 2>/dev/null; do
     sleep 300
     current_status="$(find "${conf_dir}" -type f -exec md5sum {} \; | sort -k 2 | md5sum 2>/dev/null || true)"
     if [ "${previous_status}" = "${current_status}" ]; then
@@ -39,3 +45,5 @@ while true; do
         previous_status="${current_status}"
     fi
 done
+
+wait "${SQUID_PID}"
