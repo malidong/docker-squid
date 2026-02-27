@@ -7,6 +7,40 @@ set -e
 conf_dir="/etc/squid"
 auto_conf="${conf_dir}/auto.conf"
 
+load_env_defaults() {
+    file_path="$1"
+    if [ ! -f "${file_path}" ]; then
+        return 0
+    fi
+
+    while IFS= read -r line || [ -n "${line}" ]; do
+        case "${line}" in
+            ''|\#*)
+                continue
+                ;;
+        esac
+
+        key="${line%%=*}"
+        val="${line#*=}"
+        key="$(echo "${key}" | tr -d '[:space:]')"
+
+        case "${key}" in
+            ''|*[!A-Za-z0-9_]*)
+                continue
+                ;;
+        esac
+
+        eval "is_set=\${${key}+x}"
+        if [ -z "${is_set}" ]; then
+            eval "export ${key}=\"\${val}\""
+        fi
+    done < "${file_path}"
+}
+
+# Load runtime overrides first, then image defaults.
+load_env_defaults "/etc/squid/.env"
+load_env_defaults "/opt/src/.env"
+
 # Tunables (can be overridden by environment variables)
 CONFIG_CHECK_INTERVAL_SECONDS="${CONFIG_CHECK_INTERVAL_SECONDS:-30}"
 LOG_ROTATE_INTERVAL_SECONDS="${LOG_ROTATE_INTERVAL_SECONDS:-86400}"

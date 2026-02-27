@@ -18,6 +18,7 @@ LABEL maintainer="Stand-E Consulting <stand.e.consulting@gmail.com>" \
 RUN apk add --no-cache squid tini
 
 COPY ./run.sh /opt/src/run.sh
+COPY ./.env /opt/src/.env
 RUN chmod 755 /opt/src/run.sh
 
 VOLUME ["/etc/squid", "/var/cache/squid", "/var/log/squid"]

@@ -1,4 +1,7 @@
 # docker-squid
+[![Docker Publish](https://github.com/malidong/docker-squid/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/malidong/docker-squid/actions/workflows/docker-publish.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/malidong/docker-squid)](https://hub.docker.com/r/malidong/docker-squid)
+
 Lightweight Docker image to run Squid (HTTP/HTTPS proxy) on Alpine Linux.
 
 Quick start
@@ -25,6 +28,9 @@ Run with docker-compose:
 docker-compose up -d
 ```
 
+The container automatically loads default runtime parameters from `.env`.
+With Compose, `.env` is loaded automatically for the service via `env_file`.
+
 Notes and recommendations
 
 - The image uses `alpine:latest` as base and includes `tini` to handle reaping and signals.
@@ -48,11 +54,19 @@ Runtime tuning env vars (optional)
 - `CACHE_MEM_RATIO_PCT` (default `10`), `CACHE_MEM_MIN_MB` (default `64`), `CACHE_MEM_MAX_MB` (default `2048`): dynamic `cache_mem` tuning.
 - `CACHE_DIR_RATIO_PCT` (default `50`), `CACHE_DIR_MIN_MB` (default `256`), `CACHE_DIR_LEVEL1` (default `16`), `CACHE_DIR_LEVEL2` (default `256`): dynamic `cache_dir` sizing and layout.
 
-If you want, I can also:
+docker-compose example with env file
 
-- Add an example `docker-compose.override.yml` with authentication enabled
-- Add GitHub Actions to build and publish images (already added: .github/workflows/docker-publish.yml)
+```yaml
+services:
+  docker_squid:
+    image: malidong/docker-squid:latest
+    env_file:
+      - .env
+```
 
 CI notes
 
-- The repository includes a GitHub Actions workflow at `.github/workflows/docker-publish.yml` which builds and pushes the image to GitHub Container Registry (GHCR) on pushes to `main` and tags. To enable pushing to Docker Hub, set the repository secrets `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, and (optionally) `DOCKERHUB_REPO` (defaults to `malidong/docker-squid` if unset).
+- The repository includes a GitHub Actions workflow at `.github/workflows/docker-publish.yml`.
+- Push to `main`: build and push image to GHCR (`ghcr.io/<owner>/<repo>`).
+- Push tag matching `v*` or `release-*`: push to GHCR and also push to Docker Hub.
+- To enable Docker Hub publishing, set `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, and optionally `DOCKERHUB_REPO` (defaults to `malidong/docker-squid`).
