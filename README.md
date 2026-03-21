@@ -36,7 +36,7 @@ Notes and recommendations
 - The image uses `alpine:latest` as base and includes `tini` to handle reaping and signals.
 - Do NOT expose the proxy port to the public internet without proper access controls (firewall, VPN, or authentication).
 - To customize behavior, edit the files under `etc-squid/` (they are mounted into the container). The container watches `/etc/squid` and will `reconfigure` Squid when configs change.
-- At startup, the container generates `/etc/squid/auto.conf` with dynamic cache settings based on container memory and free disk space on `/var/cache/squid`.
+- At startup, the container generates `/var/cache/squid/auto.conf` with dynamic cache settings based on container memory and free disk space on `/var/cache/squid`.
 - Logs are rotated automatically with `squid -k rotate` on interval or when log files exceed a size threshold.
 
 Suggested mounts
@@ -44,6 +44,11 @@ Suggested mounts
 - `/etc/squid` — configuration (you should keep a backup outside the container)
 - `/var/cache/squid` — cache directory (improves performance)
 - `/var/log/squid` — logs (rotate or collect centrally)
+
+Security notes
+
+- The image runs as the `squid` user by default.
+- If you bind-mount host folders for cache/logs, ensure they are writable by the `squid` user (or adjust ownership/permissions on the host).
 
 Runtime tuning env vars (optional)
 

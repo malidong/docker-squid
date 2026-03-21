@@ -15,7 +15,11 @@ LABEL maintainer="Stand-E Consulting <stand.e.consulting@gmail.com>" \
         org.opencontainers.image.source="https://github.com/malidong/docker-squid" \
         org.opencontainers.image.documentation="https://github.com/malidong/docker-squid"
 
-RUN apk add --no-cache squid tini
+RUN apk add --no-cache squid tini \
+    && (getent group squid >/dev/null 2>&1 || addgroup -S squid) \
+    && (getent passwd squid >/dev/null 2>&1 || adduser -S -G squid squid) \
+    && mkdir -p /var/cache/squid /var/log/squid \
+    && chown -R squid:squid /var/cache/squid /var/log/squid
 
 COPY ./run.sh /opt/src/run.sh
 COPY ./.env /opt/src/.env
@@ -26,6 +30,8 @@ EXPOSE 3128/tcp
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/opt/src/run.sh"]
+
+USER squid
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD squid -k check || exit 1

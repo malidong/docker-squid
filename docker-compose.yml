@@ -8,16 +8,32 @@ services:
       - .env
     restart: always
     stop_grace_period: 30s
+    mem_limit: 512m
+    cpus: "0.5"
     ports:
       - "3128:3128/tcp"
     hostname: docker-squid
     container_name: docker-squid
+    user: "squid"
+    read_only: true
     volumes:
-      - ./etc-squid:/etc/squid
+      - ./etc-squid:/etc/squid:ro
       - ./squid-cache:/var/cache/squid
       - ./squid-logs:/var/log/squid
+    tmpfs:
+      - /run
+      - /tmp
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
-      test: ["CMD", "squid", "-k", "check"]
+      test:
+        [
+          "CMD-SHELL",
+          "squid -k check && squidclient -h 127.0.0.1 -p 3128 mgr:info >/dev/null 2>&1",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

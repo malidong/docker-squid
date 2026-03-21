@@ -5,7 +5,7 @@ set -e
 # This script is intended to run inside the container only.
 
 conf_dir="/etc/squid"
-auto_conf="${conf_dir}/auto.conf"
+auto_conf="/var/cache/squid/auto.conf"
 
 load_env_defaults() {
     file_path="$1"
